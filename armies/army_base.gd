@@ -2,8 +2,9 @@ class_name ArmyBase
 extends KinematicBody2D
 
 export var population : int = 100
-export var grain : float = 1000
-export var consumption_rate : float = 0.3 # grain per person per second
+export var grain : float = 10
+export var consumption_rate : float = 0.1 # grain per person per second
+export var starve_chance : float = 0.01 # chance of starvation death per tick
 
 onready var select_area = $SelectionArea
 onready var level = get_node("/root/LevelManager").current_level
@@ -35,6 +36,7 @@ func _physics_process(delta):
 	if !map_manager.is_paused:
 		move(delta)
 		consume_grain(delta)
+		if starving: starve(delta)
 
 func move(delta):
 	var facing = target - global_position
@@ -54,6 +56,10 @@ func consume_grain(delta):
 		starve_label.visible = false
 	food_label.text = "Food: " + String(int(grain))
 	pop_label.text = "Men: " + String(population)
+
+func starve(delta):
+	if randf() <= starve_chance:
+		population -= 1
 
 func on_select_input_event(viewport, event, shape_idx):
 	if event.is_action_pressed("ui_lmb"):
