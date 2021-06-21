@@ -21,3 +21,28 @@ texture = ExtResource( 2 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SelectionArea"]
 shape = SubResource( 1 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_left = 37.8323
+margin_top = -29.5916
+margin_right = 77.8323
+margin_bottom = 10.4084
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="FoodLabel" type="Label" parent="VBoxContainer"]
+margin_right = 40.0
+margin_bottom = 14.0
+
+[node name="PopLabel" type="Label" parent="VBoxContainer"]
+margin_top = 18.0
+margin_right = 40.0
+margin_bottom = 32.0
+
+[node name="StarveLabel" type="Label" parent="VBoxContainer"]
+visible = false
+margin_top = 36.0
+margin_right = 64.0
+margin_bottom = 50.0
+text = "STARVING"
