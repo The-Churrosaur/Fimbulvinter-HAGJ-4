@@ -12,7 +12,8 @@ var unit_id = 0
 signal manpower_changed(new_manpower)
 
 func _ready():
-	update_label()
+	# at end of tick update label with manager-assigned name
+	call_deferred("update_label")
 
 func add_men(men):
 	manpower += men

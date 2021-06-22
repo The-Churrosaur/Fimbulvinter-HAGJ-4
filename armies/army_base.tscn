@@ -65,6 +65,7 @@ text = "STARVING"
 margin_top = 36.0
 margin_right = 40.0
 margin_bottom = 50.0
+custom_constants/separation = 1
 
 [node name="Label" type="Label" parent="UI/VBoxContainer/Units"]
 margin_right = 40.0

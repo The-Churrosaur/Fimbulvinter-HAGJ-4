@@ -9,6 +9,7 @@ onready var select_area = $SelectionArea
 onready var level = get_node("/root/LevelManager").current_level
 onready var hud_controller = level.hud_controller
 onready var map_manager = level.map_manager
+onready var army_manager = map_manager.army_manager
 
 # temp hud elements
 onready var food_label = $UI/VBoxContainer/FoodLabel
@@ -104,3 +105,24 @@ func add_unit(unit):
 	if ui.get_parent():
 		ui.get_parent().remove_child(ui)
 	units_vbox.add_child(ui)
+
+func remove_unit(unit):
+	units.erase(unit.unit_id)
+	# remove unit_ui from army ui
+	var ui = unit.unit_ui
+	if ui.get_parent():
+		ui.get_parent().remove_child(ui)
+	print("unit removed: ", unit, " id: ", unit.unit_id)
+
+func move_unit_to(unit, army):
+	remove_unit(unit)
+	army.add_unit(unit)
+
+func split_unit(unit):
+	var army = army_manager.spawn_army(global_position + Vector2(100,0))
+	move_unit_to(unit, army)
+
+func split_army(units): # takes array of units
+	var army = army_manager.spawn_army(global_position + Vector2(100,0))
+	for unit in units:
+		move_unit_to(unit, army)
