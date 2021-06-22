@@ -3,10 +3,15 @@ extends Node
 
 export var army_template : PackedScene = preload("res://armies/army_base.tscn")
 export var unit_template : PackedScene = preload("res://armies/unit_base.tscn")
-
 export var army_spawn_path : NodePath = "../../" # path of parent
+export var hud_controller_path : NodePath = "../../HudController"
+export var map_manager_path : NodePath = "../MapManager"
 
 onready var spawn_parent = get_node(army_spawn_path)
+onready var hud_controller = get_node(hud_controller_path)
+onready var map_manager = get_node(map_manager_path)
+
+# TODO - dependency injection of map nodes to stuff from here
 
 # keeps track of all armies and units for global effects and save/load
 

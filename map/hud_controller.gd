@@ -12,6 +12,8 @@ onready var paused_label = $HUD/MarginContainer/VBoxContainer/CenterContainer/Pa
 
 var selected_army : Node2D
 
+signal army_selected(army)
+
 func _ready():
 	map_manager.connect("pause", self, "on_pause")
 	map_manager.connect("play", self, "on_play")
@@ -36,6 +38,7 @@ func on_army_selected(army):
 	# select
 	selected_army = army
 	army.on_selected()
+	emit_signal("army_selected", army)
 
 func on_pause():
 	paused_label.visible = true

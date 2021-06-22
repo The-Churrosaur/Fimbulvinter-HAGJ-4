@@ -2,6 +2,9 @@ class_name UnitBase
 extends Node2D
 
 export var manpower = 50
+export var max_food = 100
+export var consumption_rate : float = 0.1 # food per man per second
+export var starve_chance : float = 0.001 # chance of death per man per second 
 
 # unit ui ==========
 
@@ -22,6 +25,36 @@ func _ready():
 	
 	# connect press button to unit selection
 	unit_label.connect("button_down", self, "on_pressed")
+
+func _physics_process(delta):
+	if !map_manager.is_paused:
+		move(delta)
+		consume_grain(delta)
+		if starving: starve(delta)
+
+func move(delta):
+	var facing = target - global_position
+	# anti-jitter
+	if facing.length_squared() < position_error * position_error: return
+	var movement = facing.normalized() * velocity * delta
+	move_and_collide(movement)
+
+func consume_grain(delta):
+	var amount = get_manpower() * consumption_rate * delta
+	grain -= amount
+	if grain <= 0: 
+		grain = 0
+		starving = true
+		starve_label.visible = true
+	else: 
+		starve_label.visible = false
+	food_label.text = "Food: " + String(int(grain))
+	pop_label.text = "Men: " + String(get_manpower())
+
+func starve(delta):
+	if randf() <= starve_chance:
+		var unit = units.values()[randi() % units.size()]
+		unit.add_men(-1)
 
 func add_men(men):
 	manpower += men

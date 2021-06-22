@@ -17,7 +17,8 @@ onready var food_label = $UI/VBoxContainer/FoodLabel
 onready var pop_label = $UI/VBoxContainer/PopLabel
 onready var starve_label = $UI/VBoxContainer/StarveLabel
 onready var units_vbox = $UI/VBoxContainer/Units
-onready var split_button = $UI/VBoxContainer/SplitButton
+onready var split_button = $UI/VBoxContainer/Units/SplitButton
+onready var join_button = $UI/VBoxContainer/Units/JoinButton
 
 # assigned on birth by army manager
 var army_id : int
@@ -38,7 +39,10 @@ var starving = false
 func _ready():
 	select_area.connect("input_event", self, "on_select_input_event")
 	split_button.connect("button_down", self, "on_split_button")
+	join_button.connect("button_down", self ,"on_join_button")
 	
+	map_manager.connect("pause", self, "on_pause")
+	map_manager.connect("play", self, "on_play")
 
 func _physics_process(delta):
 	if !map_manager.is_paused:
@@ -80,6 +84,14 @@ func remove_army() -> bool:
 	queue_free() 
 	return true
 
+# map pause ==========
+
+func on_pause():
+	pass
+
+func on_play():
+	pass
+
 # ui / input ==========
 
 func on_select_input_event(viewport, event, shape_idx):
@@ -94,6 +106,13 @@ func on_split_button():
 	deselect_units()
 	split_army(leaving_units)
 
+func on_join_button():
+	
+	# yield until next selection
+	var army = yield(hud_controller, "army_selected")
+	
+	join_army(army)
+
 # unit selection
 
 func deselect_units():
@@ -106,12 +125,12 @@ func deselect_units():
 
 func on_selected():
 	$SelectionSprite.visible = true
-	ui.visible = true
+	units_vbox.visible = true
 	deselect_units()
 
 func on_deselected():
 	$SelectionSprite.visible = false
-	ui.visible = false
+	units_vbox.visible = false
 	deselect_units()
 
 # movement ===========
