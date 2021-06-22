@@ -4,6 +4,7 @@ extends Control
 export var map_manager_path : NodePath
 
 onready var map_manager = get_node(map_manager_path)
+onready var army_manager = map_manager.army_manager
 
 # hud elements
 
@@ -28,7 +29,13 @@ func _input(event):
 
 func on_army_selected(army):
 	print("controller: ", army.name, " selected")
+	
+	# deselect
+	if selected_army != null: selected_army.on_deselected()
+	
+	# select
 	selected_army = army
+	army.on_selected()
 
 func on_pause():
 	paused_label.visible = true

@@ -12,10 +12,12 @@ onready var map_manager = level.map_manager
 onready var army_manager = map_manager.army_manager
 
 # temp hud elements
+onready var ui = $UI
 onready var food_label = $UI/VBoxContainer/FoodLabel
 onready var pop_label = $UI/VBoxContainer/PopLabel
 onready var starve_label = $UI/VBoxContainer/StarveLabel
 onready var units_vbox = $UI/VBoxContainer/Units
+onready var split_button = $UI/VBoxContainer/SplitButton
 
 # assigned on birth by army manager
 var army_id : int
@@ -35,6 +37,8 @@ var starving = false
 
 func _ready():
 	select_area.connect("input_event", self, "on_select_input_event")
+	split_button.connect("button_down", self, "on_split_button")
+	
 
 func _physics_process(delta):
 	if !map_manager.is_paused:
@@ -76,11 +80,25 @@ func remove_army() -> bool:
 	queue_free() 
 	return true
 
-# input ==========
+# ui / input ==========
 
 func on_select_input_event(viewport, event, shape_idx):
 	if event.is_action_pressed("ui_lmb"):
 		hud_controller.on_army_selected(self)
+
+func on_split_button():
+	var leaving_units = []
+	for unit in units.values():
+		if unit.selected == true:
+			leaving_units.append(unit)
+	deselect_units()
+	split_army(leaving_units)
+
+# unit selection
+
+func deselect_units():
+	for unit in units.values():
+		unit.deselect()
 
 # selection ==========
 
@@ -88,9 +106,13 @@ func on_select_input_event(viewport, event, shape_idx):
 
 func on_selected():
 	$SelectionSprite.visible = true
+	ui.visible = true
+	deselect_units()
 
 func on_deselected():
 	$SelectionSprite.visible = false
+	ui.visible = false
+	deselect_units()
 
 # movement ===========
 
@@ -129,11 +151,21 @@ func move_unit_to(unit, army):
 	army.add_unit(unit)
 
 func split_unit(unit) -> Node2D:
+	
+	# fails to split no unit
+	if unit == null: return self
+	
 	var army = army_manager.spawn_army(global_position + Vector2(100,0))
 	move_unit_to(unit, army)
 	return army
 
 func split_army(leaving_units) -> Node2D: # takes array of units
+	
+	# fails to split whole army
+	if leaving_units.size() >= units.size(): return self
+	# fails to split no units
+	if leaving_units.size() == 0: return self
+	
 	var army = army_manager.spawn_army(global_position + Vector2(100,0))
 	for unit in leaving_units:
 		move_unit_to(unit, army)

@@ -28,12 +28,18 @@ _global_script_classes=[ {
 "class": "MapManager",
 "language": "GDScript",
 "path": "res://map/map_manager.gd"
+}, {
+"base": "Node2D",
+"class": "UnitBase",
+"language": "GDScript",
+"path": "res://armies/unit_base.gd"
 } ]
 _global_script_class_icons={
 "ArmyBase": "",
 "ArmyManager": "",
 "HudController": "",
-"MapManager": ""
+"MapManager": "",
+"UnitBase": ""
 }
 
 [application]
