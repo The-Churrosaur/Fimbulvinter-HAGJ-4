@@ -71,6 +71,16 @@ func on_select_input_event(viewport, event, shape_idx):
 	if event.is_action_pressed("ui_lmb"):
 		hud_controller.on_army_selected(self)
 
+# selection ==========
+
+# called by controller
+
+func on_selected():
+	$SelectionSprite.visible = true
+
+func on_deselected():
+	$SelectionSprite.visible = false
+
 # movement ===========
 
 func set_target(target):
