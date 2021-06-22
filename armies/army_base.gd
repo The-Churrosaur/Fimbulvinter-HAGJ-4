@@ -66,6 +66,16 @@ func starve(delta):
 		var unit = units.values()[randi() % units.size()]
 		unit.add_men(-1)
 
+# creation deletion ==========
+
+func remove_army() -> bool:
+	
+	if !units.empty() : return false
+	
+	army_manager.delist_army(self)
+	queue_free() 
+	return true
+
 # input ==========
 
 func on_select_input_event(viewport, event, shape_idx):
@@ -118,11 +128,19 @@ func move_unit_to(unit, army):
 	remove_unit(unit)
 	army.add_unit(unit)
 
-func split_unit(unit):
+func split_unit(unit) -> Node2D:
 	var army = army_manager.spawn_army(global_position + Vector2(100,0))
 	move_unit_to(unit, army)
+	return army
 
-func split_army(units): # takes array of units
+func split_army(leaving_units) -> Node2D: # takes array of units
 	var army = army_manager.spawn_army(global_position + Vector2(100,0))
-	for unit in units:
+	for unit in leaving_units:
 		move_unit_to(unit, army)
+	return army
+
+func join_army(army):
+	for unit in units.values():
+		move_unit_to(unit, army)
+	remove_army()
+	
