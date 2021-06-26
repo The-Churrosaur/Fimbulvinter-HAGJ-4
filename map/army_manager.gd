@@ -5,7 +5,7 @@ export var army_template : PackedScene = preload("res://armies/army_base.tscn")
 export var unit_template : PackedScene = preload("res://armies/unit_base.tscn")
 export var army_spawn_path : NodePath = "../../" # path of parent
 export var hud_controller_path : NodePath = "../../HudController"
-export var map_manager_path : NodePath = "../MapManager"
+export var map_manager_path : NodePath = "../"
 
 onready var spawn_parent = get_node(army_spawn_path)
 onready var hud_controller = get_node(hud_controller_path)
@@ -26,15 +26,21 @@ var units = {}
 
 func spawn_army(pos):
 	var army = army_template.instance()
-	spawn_parent.add_child(army)
-	army.global_position = pos
 	
 	# set id
 	army.army_id = army_counter
 	army_counter += 1
 	
+	# dependency injection
+	army.hud_controller = hud_controller
+	army.map_manager = map_manager
+	army.army_manager = self
+	
 	# add to dict
 	armies[army.army_id] = army
+	
+	spawn_parent.add_child(army)
+	army.global_position = pos
 	
 	return army
 
@@ -54,7 +60,6 @@ func delist_army(army):
 
 func spawn_unit(pop, unit_name):
 	var unit = unit_template.instance()
-	spawn_parent.add_child(unit)
 	
 	unit.unit_id = unit_counter
 	unit_counter += 1
@@ -62,6 +67,13 @@ func spawn_unit(pop, unit_name):
 	
 	unit.manpower = pop
 	unit.name = unit_name
+	
+	# dependency injection
+	unit.hud_controller = hud_controller
+	unit.map_manager = map_manager
+	unit.army_manager = self
+	
+	spawn_parent.add_child(unit)
 	
 	return unit
 

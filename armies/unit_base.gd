@@ -2,9 +2,16 @@ class_name UnitBase
 extends Node2D
 
 export var manpower = 50
+
 export var max_food = 100
 export var consumption_rate : float = 0.1 # food per man per second
 export var starve_chance : float = 0.001 # chance of death per man per second 
+
+export var morale_stat : float = 10 # unit routs at zero
+export var morale_death_shock : float = 5
+export var morale_regen : float = 1 # seconds
+export var morale_regen_starve : float = 0.5
+export var morale_rout_chance : float = 0.25 # chance of rout when morale < 0
 
 # unit ui ==========
 
@@ -12,10 +19,29 @@ export var starve_chance : float = 0.001 # chance of death per man per second
 onready var unit_ui = $UnitInfo
 onready var unit_label = $UnitInfo/Button
 
+# injected by army manager on load
+
+var map_manager
+var army_manager
+var hud_controller
+
 var unit_id = 0
+
+# set by army on add
+var army
 
 # triggered by ui, flag is read by army
 var selected = false
+
+# food
+
+var food = 50
+var starving = false
+
+# morale
+
+var morale = morale_stat
+var routing = false
 
 signal manpower_changed(new_manpower)
 
@@ -27,41 +53,87 @@ func _ready():
 	unit_label.connect("button_down", self, "on_pressed")
 
 func _physics_process(delta):
-	if !map_manager.is_paused:
-		move(delta)
-		consume_grain(delta)
-		if starving: starve(delta)
+	if map_manager != null and !map_manager.is_paused:
+		consume_food(delta)
+		if starving : starve(delta)
+		morale_regen(delta)
 
-func move(delta):
-	var facing = target - global_position
-	# anti-jitter
-	if facing.length_squared() < position_error * position_error: return
-	var movement = facing.normalized() * velocity * delta
-	move_and_collide(movement)
+# manpower ==========
 
-func consume_grain(delta):
-	var amount = get_manpower() * consumption_rate * delta
-	grain -= amount
-	if grain <= 0: 
-		grain = 0
-		starving = true
-		starve_label.visible = true
-	else: 
-		starve_label.visible = false
-	food_label.text = "Food: " + String(int(grain))
-	pop_label.text = "Men: " + String(get_manpower())
-
-func starve(delta):
-	if randf() <= starve_chance:
-		var unit = units.values()[randi() % units.size()]
-		unit.add_men(-1)
-
-func add_men(men):
-	manpower += men
+func set_manpower(men):
+	
+	# deaths
+	if men < manpower:
+		on_deaths(manpower - men)
+	
+	manpower = men
+	
 	if manpower <= 0:
 		manpower = 0
+		
 	emit_signal("manpower_changed", manpower)
 	update_label()
+
+func on_deaths(deaths):
+	death_morale(deaths)
+
+# food ==========
+
+func consume_food(delta):
+	var amount = consumption_rate * manpower * delta
+	set_food(food - amount)
+
+func set_food(amount) -> int: # returns leftovers from max
+	
+	var leftover = 0
+	
+	if amount > max_food:
+		food = max_food
+		leftover = food - max_food
+	elif amount < 0:
+		food = 0
+		leftover = 0
+		starving = true
+	else:
+		food = amount
+		leftover = 0
+	
+	return leftover
+
+func starve(delta):
+	var chance = manpower * starve_chance * delta
+	if randf() <= chance:
+		set_manpower(manpower - 1)
+
+# morale ==========
+
+func set_morale(value):
+	morale = value
+	# set routing
+	if morale <= 0 && routing == false: 
+		# chance of rout each hit below morale
+		if randf() < morale_rout_chance:
+			routing = true
+			on_rout()
+	# cap
+	elif morale > morale_stat:
+		morale = morale_stat
+	
+	update_label()
+
+# deaths decrease morale
+func death_morale(dead):
+	set_morale(morale - dead * morale_death_shock)
+
+func morale_regen(delta):
+	var change
+	if !starving: change = morale_regen * delta
+	else: change = morale_regen_starve * delta
+	set_morale(morale + change)
+
+func on_rout():
+	print("unit: ", name, " id: ", unit_id, " is routing!")
+	army.split_unit(self)
 
 # ui and selection ==========
 
@@ -78,4 +150,6 @@ func deselect():
 	selected = false
 
 func update_label():
-	unit_label.text = name + ": " + String(manpower) + " men"
+	var string = name + ": " + String(manpower) + " men"
+	string += " morale: " + String(int(morale))
+	unit_label.text = string

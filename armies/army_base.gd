@@ -1,15 +1,11 @@
 class_name ArmyBase
 extends KinematicBody2D
 
-export var grain : float = 10
-export var consumption_rate : float = 0.1 # grain per person per second
-export var starve_chance : float = 0.01 # chance of starvation death per tick
-
 onready var select_area = $SelectionArea
 onready var level = get_node("/root/LevelManager").current_level
-onready var hud_controller = level.hud_controller
-onready var map_manager = level.map_manager
-onready var army_manager = map_manager.army_manager
+#onready var hud_controller = level.hud_controller
+#onready var map_manager = level.map_manager
+#onready var army_manager = map_manager.army_manager
 
 # temp hud elements
 onready var ui = $UI
@@ -22,6 +18,11 @@ onready var join_button = $UI/VBoxContainer/Units/JoinButton
 
 # assigned on birth by army manager
 var army_id : int
+
+# also assigned by army manager on load
+var hud_controller
+var map_manager
+var army_manager
 
 # dictionary of embedded units
 var units = {}
@@ -37,6 +38,10 @@ var position_error = 5 # pixels from target
 var starving = false
 
 func _ready():
+	# might not actually be necessary
+	call_deferred("after_ready")
+
+func after_ready():
 	select_area.connect("input_event", self, "on_select_input_event")
 	split_button.connect("button_down", self, "on_split_button")
 	join_button.connect("button_down", self ,"on_join_button")
@@ -45,10 +50,11 @@ func _ready():
 	map_manager.connect("play", self, "on_play")
 
 func _physics_process(delta):
-	if !map_manager.is_paused:
+	if map_manager != null and !map_manager.is_paused:
 		move(delta)
-		consume_grain(delta)
-		if starving: starve(delta)
+		food_label.text = "Food: " + String(int(get_total_food()))
+		pop_label.text = "Men: " + String(get_manpower())
+		check_starving()
 
 func move(delta):
 	var facing = target - global_position
@@ -57,22 +63,12 @@ func move(delta):
 	var movement = facing.normalized() * velocity * delta
 	move_and_collide(movement)
 
-func consume_grain(delta):
-	var amount = get_manpower() * consumption_rate * delta
-	grain -= amount
-	if grain <= 0: 
-		grain = 0
-		starving = true
-		starve_label.visible = true
-	else: 
-		starve_label.visible = false
-	food_label.text = "Food: " + String(int(grain))
-	pop_label.text = "Men: " + String(get_manpower())
-
-func starve(delta):
-	if randf() <= starve_chance:
-		var unit = units.values()[randi() % units.size()]
-		unit.add_men(-1)
+func check_starving():
+	for unit in units.values():
+		if unit.starving: 
+			starve_label.visible = true
+			return
+	starve_label.visible = false
 
 # creation deletion ==========
 
@@ -147,6 +143,12 @@ func get_manpower() -> int:
 		men += unit.manpower
 	return men
 
+func get_total_food() -> int:
+	var food = 0
+	for unit in units.values():
+		food += unit.food
+	return food
+
 func add_unit(unit):
 	print("unit: ", unit, ", ", unit.unit_id, " added to army: ", name)
 	units[unit.unit_id] = unit
@@ -156,6 +158,8 @@ func add_unit(unit):
 	if ui.get_parent():
 		ui.get_parent().remove_child(ui)
 	units_vbox.add_child(ui)
+	
+	unit.army = self
 
 func remove_unit(unit):
 	units.erase(unit.unit_id)
