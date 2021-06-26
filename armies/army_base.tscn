@@ -85,3 +85,5 @@ margin_top = 21.0
 margin_right = 137.0
 margin_bottom = 41.0
 text = "Join Army"
+
+[node name="NavLine" type="Line2D" parent="."]

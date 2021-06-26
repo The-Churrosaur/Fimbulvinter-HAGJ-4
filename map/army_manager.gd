@@ -41,6 +41,7 @@ func spawn_army(pos):
 	
 	spawn_parent.add_child(army)
 	army.global_position = pos
+	army.set_target(army.global_position)
 	
 	return army
 

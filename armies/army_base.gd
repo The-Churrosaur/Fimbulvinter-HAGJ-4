@@ -16,6 +16,8 @@ onready var units_vbox = $UI/VBoxContainer/Units
 onready var split_button = $UI/VBoxContainer/Units/SplitButton
 onready var join_button = $UI/VBoxContainer/Units/JoinButton
 
+onready var nav_line = $NavLine
+
 # assigned on birth by army manager
 var army_id : int
 
@@ -40,6 +42,9 @@ var starving = false
 func _ready():
 	# might not actually be necessary
 	call_deferred("after_ready")
+	
+	nav_line.add_point(nav_line.position)
+	nav_line.add_point(nav_line.position)
 
 func after_ready():
 	select_area.connect("input_event", self, "on_select_input_event")
@@ -62,6 +67,8 @@ func move(delta):
 	if facing.length_squared() < position_error * position_error: return
 	var movement = facing.normalized() * velocity * delta
 	move_and_collide(movement)
+	
+	nav_line.set_point_position(1, nav_line.to_local(target))
 
 func check_starving():
 	for unit in units.values():
@@ -133,6 +140,7 @@ func on_deselected():
 
 func set_target(target):
 	self.target = target
+	nav_line.set_point_position(1, nav_line.to_local(target))
 	print(name, " target set: ", self.target)
 
 # unit management ==========
