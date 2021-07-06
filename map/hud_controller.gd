@@ -31,6 +31,10 @@ func _input(event):
 
 func on_army_selected(army):
 	print("controller: ", army.name, " selected")
+
+	if army.is_in_group("Enemy"):
+		print("selected army is enemy")
+		return
 	
 	# deselect
 	if selected_army != null: selected_army.on_deselected()

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://armies/unit_base.tscn" type="PackedScene" id=1]
+[ext_resource path="res://armies/units/unit_food_wagon.gd" type="Script" id=2]
+
+[node name="UnitFoodWagon" groups=[
+"Wagon",
+] instance=ExtResource( 1 )]
+script = ExtResource( 2 )
+max_food = 1000
+starting_food = 700

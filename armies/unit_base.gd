@@ -4,8 +4,12 @@ extends Node2D
 export var manpower = 50
 
 export var max_food = 100
+export var starting_food = 50
 export var consumption_rate : float = 0.1 # food per man per second
 export var starve_chance : float = 0.001 # chance of death per man per second 
+
+export var man_hp : float = 10 # damage needed to kill a soldier
+export var man_dps : float = 1 # damage output by each soldier # sec
 
 export var morale_stat : float = 10 # unit routs at zero
 export var morale_death_shock : float = 5
@@ -35,13 +39,17 @@ var selected = false
 
 # food
 
-var food = 50
-var starving = false
+onready var food = starting_food
+onready var starving = false
 
 # morale
 
 var morale = morale_stat
 var routing = false
+
+# war
+
+var current_damage : float = 0
 
 signal manpower_changed(new_manpower)
 
@@ -70,12 +78,19 @@ func set_manpower(men):
 	
 	if manpower <= 0:
 		manpower = 0
+		unit_depleted()
 		
 	emit_signal("manpower_changed", manpower)
 	update_label()
 
 func on_deaths(deaths):
 	death_morale(deaths)
+
+func unit_depleted():
+	# temp
+	print("unit is depleted, deleting: ", self, self.name)
+	army.remove_unit(self)
+	army_manager.delete_unit(self)
 
 # food ==========
 
@@ -89,7 +104,7 @@ func set_food(amount) -> int: # returns leftovers from max
 	
 	if amount > max_food:
 		food = max_food
-		leftover = food - max_food
+		leftover = amount - max_food
 	elif amount < 0:
 		food = 0
 		leftover = 0
@@ -104,6 +119,22 @@ func starve(delta):
 	var chance = manpower * starve_chance * delta
 	if randf() <= chance:
 		set_manpower(manpower - 1)
+
+# combat ==========
+
+func deal_damage(damage):
+	# deaths
+	var deaths = int(damage / man_hp)
+	set_manpower(manpower - deaths)
+	# add remainder
+	current_damage += damage / man_hp - deaths
+	# change
+	if current_damage >= man_hp:
+		current_damage = current_damage - man_hp
+		set_manpower(manpower - 1)
+
+func get_dps() -> float:
+	return man_dps * manpower
 
 # morale ==========
 
@@ -133,7 +164,10 @@ func morale_regen(delta):
 
 func on_rout():
 	print("unit: ", name, " id: ", unit_id, " is routing!")
-	army.split_unit(self)
+	var new_army = army.split_unit(self)
+
+	# flee randomly
+	new_army.set_target(new_army.global_position + Vector2(100,0).rotated(randf()))
 
 # ui and selection ==========
 
@@ -152,4 +186,5 @@ func deselect():
 func update_label():
 	var string = name + ": " + String(manpower) + " men"
 	string += " morale: " + String(int(morale))
+	string += " food: " + String(int(food))
 	unit_label.text = string

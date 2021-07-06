@@ -14,10 +14,20 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://armies/army_base.gd"
 }, {
+"base": "ArmyBase",
+"class": "ArmyEnemy",
+"language": "GDScript",
+"path": "res://armies/army_enemy.gd"
+}, {
 "base": "Node",
 "class": "ArmyManager",
 "language": "GDScript",
 "path": "res://map/army_manager.gd"
+}, {
+"base": "Reference",
+"class": "Combat",
+"language": "GDScript",
+"path": "res://map/combat.gd"
 }, {
 "base": "Control",
 "class": "HudController",
@@ -29,17 +39,31 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://map/map_manager.gd"
 }, {
+"base": "Area2D",
+"class": "Pickup",
+"language": "GDScript",
+"path": "res://environment/pickup.gd"
+}, {
 "base": "Node2D",
 "class": "UnitBase",
 "language": "GDScript",
 "path": "res://armies/unit_base.gd"
+}, {
+"base": "UnitBase",
+"class": "UnitFoodWagon",
+"language": "GDScript",
+"path": "res://armies/units/unit_food_wagon.gd"
 } ]
 _global_script_class_icons={
 "ArmyBase": "",
+"ArmyEnemy": "",
 "ArmyManager": "",
+"Combat": "",
 "HudController": "",
 "MapManager": "",
-"UnitBase": ""
+"Pickup": "",
+"UnitBase": "",
+"UnitFoodWagon": ""
 }
 
 [application]
